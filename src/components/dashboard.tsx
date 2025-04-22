@@ -9,6 +9,45 @@ import { useWeatherQuery } from "@/hooks/use-weather-query";
 import ActivityContainer from "@/components/activity-container";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// --- Helper Functions ---
+
+// Format UNIX timestamp + timezone offset to local time string (HH:MM AM/PM)
+const formatTime = (timestamp: number, timezoneOffset: number): string => {
+  const date = new Date((timestamp + timezoneOffset) * 1000);
+  return date.toLocaleTimeString("en-US", {
+    timeZone: "UTC",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+// Convert wind degrees to cardinal direction
+const getWindDirection = (degrees: number): string => {
+  const directions = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+  ];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+};
+
+// --- WeatherInfo Component ---
+
 const WeatherInfo = () => {
   const { city, setTheme } = useWeather();
   const { data, isLoading, error } = useWeatherQuery(city);
@@ -28,21 +67,23 @@ const WeatherInfo = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-lg">Loading weather data...</div>
+        <div className="animate-pulse text-lg font-medium">
+          Loading weather data...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-2">
-        <div className="text-xl font-medium text-red-400">
+      <div className="flex flex-col items-center justify-center h-full space-y-3 text-center p-6">
+        <div className="text-2xl font-medium text-red-400">
           Unable to fetch weather data
         </div>
-        <div className="text-sm opacity-70">
+        <div className="text-sm opacity-70 max-w-md">
           {error instanceof Error && error.message === "City is required"
-            ? "Please enter a city name to get started"
-            : "Please check the city name and try again"}
+            ? "Please enter a city name to get started."
+            : "Please check the city name and try again."}
         </div>
       </div>
     );
@@ -50,7 +91,8 @@ const WeatherInfo = () => {
 
   if (!data) return null;
 
-  const weatherEmoji: any = {
+  // Define Weather Emojis
+  const weatherEmoji: { [key: string]: string } = {
     Clear: "☀️",
     Clouds: "☁️",
     Rain: "🌧️",
@@ -71,43 +113,156 @@ const WeatherInfo = () => {
   const currentWeather = data.weather[0].main;
   const emoji: string = weatherEmoji[currentWeather] || "🌈";
 
+  // Format data points
+  const sunriseTime = formatTime(data.sys.sunrise, data.timezone);
+  const sunsetTime = formatTime(data.sys.sunset, data.timezone);
+  const windDirection = getWindDirection(data.wind.deg);
+  const visibilityKm = (data.visibility / 1000).toFixed(1);
+  const currentTime = formatTime(data.dt, data.timezone);
+
+  // Reusable Tile Component
+  const InfoTile = ({
+    label,
+    value,
+    unit,
+    icon,
+    className = "",
+  }: {
+    label: string;
+    value: string | number;
+    unit?: string;
+    icon?: string;
+    className?: string;
+  }) => (
+    <div
+      className={`bg-black/10 backdrop-blur-sm p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}
+    >
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs sm:text-sm opacity-70">{label}</p>
+        {icon && <span className="text-sm opacity-70">{icon}</span>}
+      </div>
+      <p className="text-base sm:text-lg font-medium">
+        {value}
+        {unit && <span className="text-xs sm:text-sm opacity-80"> {unit}</span>}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{data.name}</h2>
-        <div className="text-4xl">
-          {Math.round(data.main.temp)}°C {emoji}
+    <div className="flex flex-col h-full space-y-6 p-4 overflow-y-auto">
+      {/* Location and Current Time */}
+      <div className="flex flex-col items-center space-y-1">
+        <div className="flex items-center space-x-2">
+          <h2 className="text-3xl font-bold">{data.name}</h2>
+          <span className="text-sm bg-black/20 px-2 py-1 rounded-full">
+            {data.sys.country}
+          </span>
+        </div>
+        <p className="text-sm opacity-70">
+          {currentTime} •{" "}
+          {new Date((data.dt + data.timezone) * 1000).toLocaleDateString(
+            "en-US",
+            {
+              timeZone: "UTC",
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            }
+          )}
+        </p>
+      </div>
+
+      {/* Main Weather Display */}
+      <div className="flex flex-col items-center justify-center space-y-3 my-6">
+        <div className="text-8xl sm:text-9xl mb-2">{emoji}</div>
+        <div className="text-5xl sm:text-6xl font-light">
+          {Math.round(data.main.temp)}°C
+        </div>
+        <div className="text-lg capitalize font-medium">
+          {data.weather[0].description}
+        </div>
+        <div className="flex items-center space-x-4 text-sm opacity-80">
+          <span>Feels like {Math.round(data.main.feels_like)}°C</span>
+          <span>•</span>
+          <span>
+            {Math.round(data.main.temp_min)}° / {Math.round(data.main.temp_max)}
+            °
+          </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm opacity-70">Feels Like</p>
-          <p className="text-lg">{Math.round(data.main.feels_like)}°C</p>
-        </div>
-        <div>
-          <p className="text-sm opacity-70">Humidity</p>
-          <p className="text-lg">{data.main.humidity}%</p>
-        </div>
-        <div>
-          <p className="text-sm opacity-70">Wind Speed</p>
-          <p className="text-lg">{data.wind.speed} m/s</p>
-        </div>
-        <div>
-          <p className="text-sm opacity-70">Weather</p>
-          <p className="text-lg capitalize">{data.weather[0].description}</p>
-        </div>
+
+      {/* Detailed Info Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <InfoTile
+          label="Wind"
+          value={`${data.wind.speed.toFixed(1)} ${windDirection}`}
+          unit="m/s"
+          icon="💨"
+        />
+        <InfoTile
+          label="Humidity"
+          value={data.main.humidity}
+          unit="%"
+          icon="💧"
+        />
+        <InfoTile
+          label="Pressure"
+          value={data.main.pressure}
+          unit="hPa"
+          icon="📊"
+        />
+        <InfoTile label="Visibility" value={visibilityKm} unit="km" icon="👁️" />
+        <InfoTile
+          label="Cloudiness"
+          value={data.clouds.all}
+          unit="%"
+          icon="☁️"
+        />
+        {data.wind.gust && (
+          <InfoTile
+            label="Wind Gust"
+            value={data.wind.gust.toFixed(1)}
+            unit="m/s"
+            icon="🌬️"
+          />
+        )}
+      </div>
+
+      {/* Sunrise/Sunset Section */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
+        <InfoTile
+          label="Sunrise"
+          value={sunriseTime}
+          icon="🌅"
+          className="bg-gradient-to-r from-amber-500/20 to-yellow-400/20"
+        />
+        <InfoTile
+          label="Sunset"
+          value={sunsetTime}
+          icon="🌇"
+          className="bg-gradient-to-r from-orange-500/20 to-pink-500/20"
+        />
+      </div>
+
+      {/* Coordinates */}
+      <div className="text-center text-xs opacity-60 mt-2">
+        Coordinates: {data.coord.lat.toFixed(2)}°N, {data.coord.lon.toFixed(2)}
+        °E
       </div>
     </div>
   );
 };
 
+// --- Dashboard Component ---
+
 const Dashboard = () => {
   const { theme } = useWeather();
   const isMobile = useIsMobile();
+
   return (
     <BackgroundGradientAnimation
       time={theme}
-      className="flex z-40 inset-0 absolute p-5 gap-5 lg:p-10 max-sm:flex-col overflow-scroll"
+      className="flex z-40 inset-0 absolute p-5 gap-5 lg:p-10 max-sm:flex-col overflow-y-auto"
     >
       {isMobile && (
         <GlassmorphicContainer time={theme}>
@@ -115,7 +270,7 @@ const Dashboard = () => {
         </GlassmorphicContainer>
       )}
       <GlassmorphicContainer
-        className="md:w-2/3 sm:w-1/2 max-sm:h-1/2"
+        className="md:w-2/3 sm:w-1/2 max-sm:h-1/2 flex flex-col"
         time={theme}
       >
         <WeatherInfo />

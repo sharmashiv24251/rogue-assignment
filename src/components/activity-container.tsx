@@ -3,7 +3,7 @@
 import React from "react";
 import { useWeather } from "@/context/weather-context";
 import { useWeatherQuery } from "@/hooks/use-weather-query";
-import { Skeleton } from "./ui/skeleton";
+import { motion } from "framer-motion";
 
 type Activity = {
   title: string;
@@ -16,7 +16,7 @@ type ActivityResponse = {
 };
 
 const ActivityContainer = () => {
-  const { city } = useWeather();
+  const { city, theme } = useWeather();
   const { data: weatherData } = useWeatherQuery(city);
   const [activities, setActivities] = React.useState<Activity[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -60,46 +60,123 @@ const ActivityContainer = () => {
     fetchActivities();
   }, [weatherData]);
 
+  // Skeleton loader with animation
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[...Array(4)].map((_, index) => (
-          <div
-            key={index}
-            className="p-3 rounded-lg bg-white/50 backdrop-blur-sm"
-          >
-            <Skeleton className="h-6 w-1/2 mb-2" />
-            <Skeleton className="h-10 w-3/4 " />
-          </div>
-        ))}
+      <div className="p-4 space-y-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <span className="text-lg">🎯</span>
+          Suggested Activities
+        </h2>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <div
+              key={index}
+              className="p-4 rounded-xl bg-white/10 backdrop-blur-sm animate-pulse"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-6 w-6 rounded-full bg-white/30"></div>
+                <div className="h-5 w-1/2 rounded bg-white/30"></div>
+              </div>
+              <div className="h-4 w-3/4 rounded bg-white/20 mb-1"></div>
+              <div className="h-4 w-1/2 rounded bg-white/20"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
-    return <div className="text-red-400 text-center py-4">{error}</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6">
+        <div className="text-xl mb-2">😕</div>
+        <div className="text-red-400 text-center font-medium">{error}</div>
+        <button
+          className="mt-4 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
+          onClick={() => setLoading(true)}
+        >
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   if (!activities.length) {
-    return null;
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6">
+        <div className="text-2xl mb-3">🔍</div>
+        <p className="text-center opacity-70">
+          Enter a city to see activity suggestions
+        </p>
+      </div>
+    );
   }
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  };
+
+  // Generate a gradient based on the current theme
+  const getGradientClass = (index: number) => {
+    const baseClasses = "backdrop-blur-sm border border-white/10 shadow-sm";
+
+    if (theme === "morning") {
+      return `bg-gradient-to-r from-amber-500/10 to-yellow-400/5 ${baseClasses}`;
+    } else if (theme === "afternoon") {
+      return `bg-gradient-to-r from-blue-500/10 to-cyan-400/5 ${baseClasses}`;
+    } else if (theme === "evening") {
+      return `bg-gradient-to-r from-orange-500/10 to-pink-500/5 ${baseClasses}`;
+    } else {
+      return `bg-gradient-to-r from-indigo-500/10 to-purple-500/5 ${baseClasses}`;
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Suggested Activities</h2>
-      <div className="space-y-3">
+    <div className="p-4 space-y-4 h-full overflow-y-auto">
+      <h2 className="text-xl font-semibold flex items-center gap-2">
+        <span className="text-lg">🎯</span>
+        Suggested Activities
+      </h2>
+
+      <motion.div
+        className="space-y-4"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
         {activities.map((activity, index) => (
-          <div
+          <motion.div
             key={index}
-            className="p-3 rounded-lg bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors"
+            variants={item}
+            className={`p-4 rounded-xl hover:shadow-md transition-all duration-300 ${getGradientClass(
+              index
+            )}`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span className="text-2xl">{activity.emoji}</span>
-              <h3 className="font-medium">{activity.title}</h3>
+              <h3 className="font-medium text-base">{activity.title}</h3>
             </div>
-            <p className="mt-1 text-sm opacity-80">{activity.description}</p>
-          </div>
+            <p className="mt-2 text-sm opacity-80 pl-9">
+              {activity.description}
+            </p>
+          </motion.div>
         ))}
+      </motion.div>
+
+      <div className="pt-2 text-xs opacity-60 text-center">
+        Based on current weather conditions in {city || "your location"}
       </div>
     </div>
   );

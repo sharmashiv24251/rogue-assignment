@@ -1,8 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { TimeOfDay } from "@/types/time-of-day";
 import { useEffect, useRef, useState } from "react";
-
-type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
 const timeBasedColors = {
   afternoon: {
@@ -26,14 +25,14 @@ const timeBasedColors = {
     pointerColor: "130, 190, 255", // Bright blue
   },
   evening: {
-    gradientBackgroundStart: "rgb(72,61,139)", // #483D8B (DarkSlateBlue)
-    gradientBackgroundEnd: "rgb(199,21,133)", // #C71585 (MediumVioletRed)
-    firstColor: "199,21,133", // fuchsia (#C71585)
-    secondColor: "72,61,139", // indigo (#483D8B)
-    thirdColor: "255,140,0", // orange (#FF8C00)
-    fourthColor: "255,69,0", // orangered (#FF4500)
-    fifthColor: "255,20,147", // hotpink (#FF1493)
-    pointerColor: "255,105,180", // pink (#FF69B4)
+    gradientBackgroundStart: "rgb(50, 40, 90)", // Soft indigo
+    gradientBackgroundEnd: "rgb(120, 60, 100)", // Muted violet
+    firstColor: "180, 70, 110", // dusky pink
+    secondColor: "100, 60, 140", // dusty purple
+    thirdColor: "255, 120, 80", // sunset coral
+    fourthColor: "150, 50, 100", // wine red
+    fifthColor: "200, 120, 160", // pale orchid
+    pointerColor: "255, 160, 190", // soft warm pink glow
   },
   night: {
     gradientBackgroundStart: "rgb(25, 25, 112)", // Dark blue

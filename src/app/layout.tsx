@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-
+import { WeatherProvider } from "@/context/weather-context";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 import "./globals.css";
@@ -28,20 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
-          {children}
-          <div className="absolute z-50 bottom-0 left-0">
-            <Dialog>
-              <DialogTrigger>Settings</DialogTrigger>
-              <DialogContent>
-                <Settings />
-              </DialogContent>
-            </Dialog>
-          </div>
+          <WeatherProvider>{children}</WeatherProvider>
         </ThemeProvider>
       </body>
     </html>

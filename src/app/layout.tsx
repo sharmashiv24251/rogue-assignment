@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
 import "./globals.css";
+import Settings from "@/components/settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +34,14 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
           {children}
+          <div className="absolute z-50 bottom-0 left-0">
+            <Dialog>
+              <DialogTrigger>Settings</DialogTrigger>
+              <DialogContent>
+                <Settings />
+              </DialogContent>
+            </Dialog>
+          </div>
         </ThemeProvider>
       </body>
     </html>

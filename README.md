@@ -27,13 +27,16 @@ You are expected to:
 ## 🛠️ Technologies to Use
 
 **Frontend:**
+
 - HTML, CSS, JavaScript (Vanilla JS or any framework like React, Vue, Angular, etc.—your choice!)
 - Optional: Libraries like Tailwind CSS, Bootstrap, or animations (e.g., GSAP) for enhanced design
 
 **API:**
+
 - A free weather API (e.g., [OpenWeatherMap](https://openweathermap.org/))
 
 **Deployment:**
+
 - Vercel
 
 ---
@@ -126,7 +129,6 @@ Your frontend should:
      git clone https://github.com/roguedevs-hq/fullstack-fe-intern-your_name.git
      cd fullstack-fe-intern-your_name
      ```
-
 
 2. **Set up API key:**
 

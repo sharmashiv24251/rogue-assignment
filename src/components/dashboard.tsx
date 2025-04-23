@@ -8,7 +8,8 @@ import Settings from "@/components/settings";
 import { useWeatherQuery } from "@/hooks/use-weather-query";
 import ActivityContainer from "@/components/activity-container";
 import { useIsMobile } from "@/hooks/use-mobile";
-
+import { Dialog, DialogTrigger, DialogContent } from "./ui/dialog";
+import { Settings2 } from "lucide-react";
 // --- Helper Functions ---
 
 // Format UNIX timestamp + timezone offset to local time string (HH:MM AM/PM)
@@ -92,8 +93,10 @@ const WeatherInfo = () => {
   if (!data) return null;
 
   // Define Weather Emojis
-  const weatherEmoji: { [key: string]: string } = {
-    Clear: "☀️",
+  const weatherEmoji: {
+    [key: string]: string | { day: string; night: string };
+  } = {
+    Clear: { day: "☀️", night: "🌙" },
     Clouds: "☁️",
     Rain: "🌧️",
     Snow: "❄️",
@@ -111,7 +114,15 @@ const WeatherInfo = () => {
   };
 
   const currentWeather = data.weather[0].main;
-  const emoji: string = weatherEmoji[currentWeather] || "🌈";
+  const hour = new Date((data.dt + data.timezone) * 1000).getUTCHours();
+  const isNight = hour < 5 || hour >= 20;
+
+  const emoji: string =
+    typeof weatherEmoji[currentWeather] === "object"
+      ? (weatherEmoji[currentWeather] as { day: string; night: string })[
+          isNight ? "night" : "day"
+        ]
+      : (weatherEmoji[currentWeather] as string) || "🌈";
 
   // Format data points
   const sunriseTime = formatTime(data.sys.sunrise, data.timezone);
@@ -149,7 +160,7 @@ const WeatherInfo = () => {
   );
 
   return (
-    <div className="flex flex-col h-full space-y-6 p-4 overflow-y-auto">
+    <div className="flex flex-col h-full space-y-6 p-4 overflow-y-auto relative">
       {/* Location and Current Time */}
       <div className="flex flex-col items-center space-y-1">
         <div className="flex items-center space-x-2">
@@ -249,6 +260,20 @@ const WeatherInfo = () => {
         Coordinates: {data.coord.lat.toFixed(2)}°N, {data.coord.lon.toFixed(2)}
         °E
       </div>
+      <div className="absolute top-0 right-0">
+        <Dialog>
+          <DialogTrigger>
+            <span className="text-4xl cursor-pointer">
+              <Settings2 />
+            </span>
+          </DialogTrigger>
+          <DialogContent className="bg-transparent p-0">
+            <GlassmorphicContainer time={"night"}>
+              <Settings />
+            </GlassmorphicContainer>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
@@ -257,33 +282,25 @@ const WeatherInfo = () => {
 
 const Dashboard = () => {
   const { theme } = useWeather();
-  const isMobile = useIsMobile();
 
   return (
     <BackgroundGradientAnimation
       time={theme}
       className="flex z-40 inset-0 absolute p-5 gap-5 lg:p-10 max-sm:flex-col overflow-y-auto"
     >
-      {isMobile && (
-        <GlassmorphicContainer time={theme}>
-          <Settings />
-        </GlassmorphicContainer>
-      )}
       <GlassmorphicContainer
-        className="md:w-2/3 sm:w-1/2 max-sm:h-1/2 flex flex-col"
+        className="md:w-2/3 sm:min-h-[500px]  flex flex-col"
         time={theme}
       >
         <WeatherInfo />
       </GlassmorphicContainer>
-      <div className="flex flex-col gap-5 md:w-1/3 sm:w-1/2 max-sm:h-1/2">
-        <GlassmorphicContainer time={theme}>
+      <div className="flex flex-col gap-5 md:w-1/3 sm:w-1/2 ">
+        <GlassmorphicContainer
+          time={theme}
+          className="sm:h-screen overflow-y-scroll"
+        >
           <ActivityContainer />
         </GlassmorphicContainer>
-        {!isMobile && (
-          <GlassmorphicContainer time={theme}>
-            <Settings />
-          </GlassmorphicContainer>
-        )}
       </div>
     </BackgroundGradientAnimation>
   );

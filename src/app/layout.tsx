@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { WeatherProvider } from "@/context/weather-context";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 import "./globals.css";
 import Settings from "@/components/settings";

@@ -128,26 +128,11 @@ const ActivityContainer = () => {
     show: { opacity: 1, y: 0 },
   };
 
-  // Generate a gradient based on the current theme
-  const getGradientClass = (index: number) => {
-    const baseClasses = "backdrop-blur-sm border border-white/10 shadow-sm";
-
-    if (theme === "morning") {
-      return `bg-gradient-to-r from-amber-500/10 to-yellow-400/5 ${baseClasses}`;
-    } else if (theme === "afternoon") {
-      return `bg-gradient-to-r from-blue-500/10 to-cyan-400/5 ${baseClasses}`;
-    } else if (theme === "evening") {
-      return `bg-gradient-to-r from-orange-500/10 to-pink-500/5 ${baseClasses}`;
-    } else {
-      return `bg-gradient-to-r from-indigo-500/10 to-purple-500/5 ${baseClasses}`;
-    }
-  };
-
   return (
-    <div className="p-4 space-y-4 h-full overflow-y-auto">
+    <div className="space-y-4 h-full overflow-y-auto">
       <h2 className="text-xl font-semibold flex items-center gap-2">
         <span className="text-lg">🎯</span>
-        Suggested Activities
+        AI Suggested Activities
       </h2>
 
       <motion.div
@@ -160,17 +145,13 @@ const ActivityContainer = () => {
           <motion.div
             key={index}
             variants={item}
-            className={`p-4 rounded-xl hover:shadow-md transition-all duration-300 ${getGradientClass(
-              index
-            )}`}
+            className={`p-4 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 shadow-sm`}
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">{activity.emoji}</span>
               <h3 className="font-medium text-base">{activity.title}</h3>
             </div>
-            <p className="mt-2 text-sm opacity-80 pl-9">
-              {activity.description}
-            </p>
+            <p className="mt-2 text-sm opacity-80">{activity.description}</p>
           </motion.div>
         ))}
       </motion.div>
